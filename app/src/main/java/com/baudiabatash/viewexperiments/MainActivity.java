@@ -1,5 +1,6 @@
 package com.baudiabatash.viewexperiments;
 
+import android.graphics.Color;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
@@ -16,6 +17,9 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         myView = (MyView) findViewById(R.id.myView);
-        myView.setProgress(.9);
+        myView.setProgress(.5);
+        myView.setTextColorFromResource(R.color.my_color);
+        myView.setRimColorFromResource(R.color.rim_color);
+        myView.setProgressColorFromResource(R.color.selected_item_color);
     }
 }

@@ -8,10 +8,14 @@ import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.os.Build;
+import android.support.v4.app.DialogFragment;
 import android.support.v4.content.res.ResourcesCompat;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.View;
+
+import java.text.DecimalFormat;
+import java.text.Format;
 
 /**
  * Created by Sohel on 12/31/2016.
@@ -23,9 +27,14 @@ public class MyView extends View {
 
     private int center_x,center_y;
     private int circle_radius;
-    private int circle_stroke_width;
-    private int arc_stroke_width;
-    private int cercle_color;
+    private int rim_stroke_width;
+    private int progress_stroke_width;
+
+    private float textSize;
+    private int textColor;
+
+    private int progressColor;
+    private int rimColor;
 
     //view size
 
@@ -60,25 +69,50 @@ public class MyView extends View {
         this.progress = 0;
         setBackgroundColor(Color.WHITE);
         // desire width and height
-
-        Log.d("BBL",getWidth()+"");
-
         startAngle=-90;
         sweepAngle=0;
         pos_x=0;
         pos_y=0;
 
+        this.textColor = Color.BLACK;
+        this.rimColor= Color.GRAY;
+        this.progressColor = Color.GREEN;
+
+    }
+
+    private void setTextSize(float textSize){
+        this.textSize = textSize;
+    }
+
+    public void setTextColor(int textColor) {
+        this.textColor = textColor;
+    }
+
+    public void setTextColorFromResource(int textColor) {
+        this.textColor = ResourcesCompat.getColor(getResources(),textColor,null);
+    }
+
+    public void setProgressColor(int color){
+        this.progressColor= color;
+    }
+
+    public void setProgressColorFromResource(int resource){
+        this.progressColor = ResourcesCompat.getColor(getResources(),resource,null);
+    }
+
+    public void setRimColor(int rimColor) {
+        this.rimColor = rimColor;
+    }
+
+    public void setRimColorFromResource(int resource){
+        this.rimColor = ResourcesCompat.getColor(getResources(),resource,null);
     }
 
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
 
-        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
-
         desiredWidth = 100;
         desiredHeight = 100;
-
-
         int widthMode = MeasureSpec.getMode(widthMeasureSpec);
         int widthSize = MeasureSpec.getSize(widthMeasureSpec);
         int heightMode = MeasureSpec.getMode(heightMeasureSpec);
@@ -111,20 +145,32 @@ public class MyView extends View {
             height = desiredHeight;
         }
 
-        int minDim = Math.min(width,height);
+        int minDim =0;
 
-        Log.d("TEst",minDim+"");
+        if(height>width){
+            height=width;
+        }else {
+            width= height;
+        }
+
+        //int finalMeasureSpec = MeasureSpec.makeMeasureSpec(minDim, MeasureSpec.EXACTLY);
+
+        /*width = finalMeasureSpec;
+        height= finalMeasureSpec;*/
 
         center_x=width/2;
         center_y=height/2;
-        circle_stroke_width=width/10;
-        arc_stroke_width=3*circle_stroke_width/5;
-        circle_radius=center_x-(circle_stroke_width/2);
+        rim_stroke_width=width/10;
+        progress_stroke_width=3*rim_stroke_width/5;
+        circle_radius=center_x-(rim_stroke_width/2);
 
+        this.textSize = width/4;
 
 
         //MUST CALL THIS
         setMeasuredDimension(width, height);
+
+        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
 
 
     }
@@ -148,20 +194,22 @@ public class MyView extends View {
 
         myPaint = new Paint();
         myPaint.setAntiAlias(true);
-        myPaint.setColor(Color.GRAY);
+        myPaint.setColor(rimColor);
         myPaint.setStyle(Paint.Style.STROKE);
-        myPaint.setStrokeWidth(circle_stroke_width);
+        myPaint.setStrokeWidth(rim_stroke_width);
 
         arcPaint= new Paint();
         arcPaint.setAntiAlias(true);
-        arcPaint.setColor(Color.GREEN);
+        arcPaint.setColor(progressColor);
         arcPaint.setStyle(Paint.Style.STROKE);
-        arcPaint.setStrokeWidth(arc_stroke_width);
+        arcPaint.setStrokeWidth(progress_stroke_width);
+
+        Rect bound = new Rect();
 
         textPaing= new Paint();
-        textPaing.setColor(Color.BLACK);
+        textPaing.setColor(textColor);
         textPaing.setStyle(Paint.Style.FILL);
-        textPaing.setTextSize(25);
+        textPaing.setTextSize(textSize);
 
         canvas.drawCircle(center_x,center_y,circle_radius,myPaint);
 
@@ -170,8 +218,19 @@ public class MyView extends View {
 
         canvas.drawArc(rectF,startAngle,sweepAngle,false,arcPaint);
 
+        //float bal =textPaing.measureText(calcProgress(sweepAngle));
+
+        String progress = calcProgress(sweepAngle);
+
+        textPaing.getTextBounds(progress,0,progress.length(),bound);
+        int textHeight = bound.height();
+        int textWidth = bound.width();
+
+
         // Text
-        //canvas.drawText(String.valueOf(sweepAngle),center_x,center_y,textPaing);
+        canvas.drawText(calcProgress(sweepAngle),center_x-(textWidth/2),center_y+(textHeight/2),textPaing);
+
+
 
 
         //startAngle=sweepAngle;
@@ -189,5 +248,14 @@ public class MyView extends View {
         RectF rectF = new RectF(center_x-circle_radius,center_y-circle_radius,center_x+circle_radius,center_y+circle_radius);
 
         return rectF;
+    }
+
+
+    private String calcProgress(int sweepAngle){
+        double progress = sweepAngle*100/360;
+        DecimalFormat df = new DecimalFormat("#.##");
+        String pp = df.format(progress);
+
+        return pp+"%";
     }
 }
